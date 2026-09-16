@@ -8,7 +8,7 @@
 
 比赛里最常见的失败不是「模型不够聪明」，而是流程散掉：换了模型但摘要没跟着改，第二问重算后第三问还在引用旧结果，关键假设只活在聊天记录里，交卷前才发现页数或 AI 使用披露不合规。
 
-`26math` 是这套流程的入口。**它本身只有 1.5 KB**，真正干活的是 [`mathmodel-skill`](https://github.com/handsomeZR-netizen/mathmodel-skill) 核心引擎；`26math` 负责把请求接进去，并卡住四条容易在赶工时出事的行为。
+`26math` 是这套流程的入口。**它本身只有 1.4 KB**，真正干活的是 [`mathmodel-skill`](https://github.com/handsomeZR-netizen/mathmodel-skill) 核心引擎；`26math` 负责把请求接进去，并卡住四条容易在赶工时出事的行为。
 
 ## 它卡住了什么
 
@@ -72,7 +72,7 @@ git clone https://github.com/yy169/26math.git ~/.codex/skills/26math
 python ~/.claude/skills/mathmodel-skill/scripts/doctor.py --competition cumcm --skip-tools
 ```
 
-看到 `Summary: 10 passed, 0 failed` 就说明引擎装好了。`pandoc not found` 是可选警告，不影响主流程，只影响正式编译论文。
+上游 v6.1.0 的预期输出是 `Summary: 9 passed, 0 optional warnings, 0 failed`。`pandoc not found` 是可选警告，不影响主流程，只影响正式编译论文。
 
 再确认 `26math` 本身被识别到 —— 在会话里直接说：
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "26math｜完整数学建模工作流"
+  short_description: "国赛、美赛和电工杯从选题到终稿的主工作流"
+  default_prompt: "Use $26math to guide my mathematical modeling team from problem selection through a compliant final submission."

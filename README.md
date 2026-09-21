@@ -1,21 +1,107 @@
-# 26math
+# 数学建模国赛全流程 Skill
 
-> 大学生数学建模竞赛的工作流入口 —— 支持 CUMCM 国赛、MCM/ICM 美赛和电工杯。
-> 适用于 Claude Code 与 Codex CLI。
+> CUMCM 国赛 / MCM-ICM 美赛 / 电工杯：从拿到题到交卷前的完整工作流，可直接装进 Claude Code 与 Codex。
 
-[![License](https://img.shields.io/badge/license-MIT-22c55e)](./LICENSE)
-[![Harness](https://img.shields.io/badge/Claude%20Code%20%7C%20Codex-skill-6f42c1)](#安装)
+它不是"帮你写论文的提示词"，而是**一套带门禁的流程**。每一步要做完什么、缺什么会卡住、哪些结论必须留下证据，都写在文件里：AI 按文件走，你按阶段查。目标是把比赛里最常见的失败挡住——换了模型但摘要没跟着改、第二问重算后第三问还在引用旧结果、关键假设只活在聊天记录里、交卷前才发现页数或 AI 使用披露不合规。
 
-比赛里最常见的失败不是「模型不够聪明」，而是流程散掉：换了模型但摘要没跟着改，第二问重算后第三问还在引用旧结果，关键假设只活在聊天记录里，交卷前才发现页数或 AI 使用披露不合规。
+---
 
-`26math` 是这套流程的入口。**它本身只有 1.4 KB**，真正干活的是 [`mathmodel-skill`](https://github.com/handsomeZR-netizen/mathmodel-skill) 核心引擎；`26math` 负责把请求接进去，并卡住四条容易在赶工时出事的行为。
+## 先说清楚这仓库里哪些是谁写的
 
-## 它卡住了什么
+| 部分 | 来源 |
+|---|---|
+| 底座引擎 `skills/mathmodel-skill/` | 第三方开源项目 [handsomeZR-netizen/mathmodel-skill](https://github.com/handsomeZR-netizen/mathmodel-skill) **v6.1.0**（MIT）。基线 103 个文件里 72 个原样保留 |
+| 本仓库的增量 | 30 个文件的改动（**+1323 / −479 行**）+ 35 个新文件（**332 KB**），共约 65 个文件；另有 `skills/26math/` 入口调度器 |
 
-- **引擎读不到就报错** —— 不偷偷退回临时提示词流程假装在干活
-- **不无差别跑全流程** —— 只要求读题、调代码、单项审查或排版时，只进对应阶段
-- **先讨论再动手** —— 用户说「先聊聊」时，未经确认不改文件、不启动全量求解
-- **统计语义先对齐** —— 题目把「信度 / 显著性 / 两类错误 / 功效 / OC 概率 / 后验区间」混着用时，先走统计语义门禁；映射没做完，不锁数值也不锁摘要措辞
+逐文件差异见 [CHANGELOG.md](./CHANGELOG.md)，第三方版权声明与免责见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
+
+---
+
+## 两处针对 2026 年新规的修正（原版没有）
+
+《全国大学生数学建模竞赛人工智能工具使用规定（2026 年试行）》自 **2026-09-01** 起施行。原版生成的论文工程有三处对不上，每一项都补了渲染守卫测试：
+
+1. **声明位置**：AI 使用声明原先生成在**参考文献之后**，新规要求在**参考文献之前**。已改。
+2. **声明措辞**：「未使用 AI」的固定措辞漏了「**在竞赛过程中**」。已按官方原文补齐。
+3. **用了 AI 就没有正文声明**：原版只在支撑材料里出详情 PDF，正文不生成使用声明。已补上正文声明块。
+
+对应测试：`tests/test_ai_usage.py`、`tests/test_render_guard.py`；模板改动在 `templates/latex/cumcm/main.tex` 与 `scripts/render_ai_usage.py`。
+
+> ⚠️ 任何情况下，**当年官方通知优先于本仓库内置规则**。工具帮你少踩坑，不替你签字。
+
+## 一处被撤回的错误参考数据
+
+原版带着一份 `competitions/cumcm/empirical.json`，自称"59 份 CUMCM 公开样本"，喂给打分模块当国赛论文的篇幅/图表分位锚点。但它的题号覆盖 **A–F**，而国赛本科组只有 A/B/C、专科组只有 D/E——这批样本来自别的赛事（研究生"华为杯"），不是国赛。
+
+拿它卡国赛论文会被系统性带偏。本仓库已将其**撤回为空占位**并在 `empirical_notes.md` 写明原因：缺数据时如实报告，不用错锚点。
+
+---
+
+## 安装
+
+本仓库自带引擎，**一条命令 clone、一次拷贝**即可，不需要再去找上游。
+
+### Claude Code（Windows PowerShell）
+
+```powershell
+git clone https://github.com/yy169/mathmodel-cumcm.git "$HOME\mathmodel-cumcm"
+Copy-Item "$HOME\mathmodel-cumcm\skills\*" "$HOME\.claude\skills\" -Recurse -Force
+```
+
+> 别在 `git clone` 的路径里写 `~`。PowerShell 不展开它，实测会在当前目录建一个字面量名为 `~` 的文件夹，然后 skill 永远不会被发现，而且没有任何报错。
+
+### Claude Code（macOS / Linux）
+
+```bash
+git clone https://github.com/yy169/mathmodel-cumcm.git ~/mathmodel-cumcm
+cp -r ~/mathmodel-cumcm/skills/* ~/.claude/skills/
+```
+
+### Codex CLI
+
+把上面命令里的 `.claude` 换成 `.codex` 即可。
+
+### 装完必须重启
+
+Skill 在启动时扫描，热加载不一定生效。
+
+### 验证（30 秒）
+
+```powershell
+python "$HOME\.claude\skills\mathmodel-skill\scripts\doctor.py" --competition cumcm --skip-tools
+```
+
+预期最后一行：
+
+```
+Summary: 10 passed, 0 optional warnings, 0 failed
+```
+
+`mcm`、`diangong` 各跑一次同样是 10 passed。`pandoc not found` 属于可选警告，不影响流程，只影响正式编译论文。
+
+原版全新安装是 **9 passed**——第 10 项是本仓库新增的 `workflow-manifest`（阶段执行清单自检）。
+
+跑完整测试（可选，需要先把依赖装上）：
+
+```powershell
+pip install -r "$HOME\.claude\skills\mathmodel-skill\templates\shared\requirements.txt"
+cd "$HOME\.claude\skills\mathmodel-skill"
+python -m pytest tests -q
+```
+
+本机实测：`74 passed, 113 subtests passed`，0 失败。不装 `seaborn` 会让 `tests/test_code_starters.py` 在收集阶段报错，与流程本身无关。
+
+### 确认真的接上了
+
+在会话里直接说：
+
+```
+用 26math 带我打这一次数学建模竞赛，从读题到交卷。
+```
+
+如果回答里提到"核心引擎不存在或不可读"，说明拷贝时只拷了 `26math` 没拷 `mathmodel-skill`——它俩必须是同级目录。
+
+---
 
 ## 三档模式
 
@@ -25,79 +111,23 @@
 | `championship` | 明确要求冲刺、终稿红队、提交前冠军级审查 |
 | `economy` | 额度敏感 |
 
----
+## 里面有什么
 
-## 安装
+- **10 个阶段**：读题 → 分析 → 建模选择 → 求解 → 子问题循环 → 稳健性 → 检验 → 写作 → 评审 → 交付。
+- **入口调度器 `26math`**：卡住四条容易在赶工时出事的行为——引擎读不到就报错而不是假装在干活；你只要单项服务时不无差别跑全流程；你说"先讨论"时未经确认不改文件；统计术语（信度／显著性／两类错误／功效／OC 概率／后验区间）被混用时先过语义门禁，映射没做完不锁数值也不锁摘要措辞。
+- **15 个体检脚本**（本仓库新增，3142 行）：`audit_data.py` 数据体检、`sanity_check.py` 结果合理性、`check_manuscript_hygiene.py` 稿件卫生、`check_claim_evidence.py` 主张—证据对应、`check_cross_file_consistency.py` 跨文件一致性、`check_figure_audit.py` 图表溯源、`check_requirement_coverage.py` 题目要求覆盖、`run_readiness_audit.py` 交卷前就绪度、`workflow_manager.py` 阶段状态机等。
+- **13 篇流程文档**（本仓库新增，2662 行）：外部审查接收、图表证据体系、交付门禁、统计语义门禁、模型路线确认、文献质量控制、只做题目信息的文献起步、改稿案例时间线、优化搜索严谨性等；另有 `competitions/cumcm/paper_writing.md` 国赛写作规则一篇（1099 行）。
 
-### ⚠️ 必读：这个 skill 单独装不能用
+## 没有随本仓库发布的东西
 
-`26math` 通过相对路径 `../mathmodel-skill/` 找核心引擎，所以**两者必须是同级目录**，缺一不可：
-
-```
-skills/
-├── 26math/            ← 本仓库
-└── mathmodel-skill/   ← 核心引擎，必须一起装
-```
-
-核心引擎是 [@handsomeZR-netizen](https://github.com/handsomeZR-netizen) 的独立 MIT 项目，本仓库不包含、也不重新分发它的任何代码。
-
-### Claude Code
-
-```bash
-git clone https://github.com/handsomeZR-netizen/mathmodel-skill.git ~/.claude/skills/mathmodel-skill
-git clone https://github.com/yy169/26math.git ~/.claude/skills/26math
-```
-
-Windows PowerShell 里 `~` 可能不展开，用完整路径：
-
-```powershell
-git clone https://github.com/handsomeZR-netizen/mathmodel-skill.git "$HOME\.claude\skills\mathmodel-skill"
-git clone https://github.com/yy169/26math.git "$HOME\.claude\skills\26math"
-```
-
-### Codex CLI
-
-把上面命令里的 `.claude` 换成 `.codex` 即可：
-
-```bash
-git clone https://github.com/handsomeZR-netizen/mathmodel-skill.git ~/.codex/skills/mathmodel-skill
-git clone https://github.com/yy169/26math.git ~/.codex/skills/26math
-```
-
-### 验证装对了
-
-装完**重启 Claude Code / Codex**（skill 在启动时扫描，热加载不一定生效），然后：
-
-```bash
-python ~/.claude/skills/mathmodel-skill/scripts/doctor.py --competition cumcm --skip-tools
-```
-
-上游 v6.1.0 的预期输出是 `Summary: 9 passed, 0 optional warnings, 0 failed`。`pandoc not found` 是可选警告，不影响主流程，只影响正式编译论文。
-
-再确认 `26math` 本身被识别到 —— 在会话里直接说：
-
-```
-Use 26math to guide my CUMCM team from kickoff to submission.
-```
-
-如果回复里提到「核心引擎不存在或不可读」，就是 `mathmodel-skill` 没装到同级目录。
+配套的 `mathmodel-latex-skill`（另一套排版模板包，20 个文件）**没有许可证文件、出处也无法确认**，因此不包含在本仓库内。本仓库自带的 `templates/latex/` 已覆盖 CUMCM 与 MCM 的模板需求。
 
 ---
 
-## 已知问题
+## 许可
 
-**上游核心引擎当前版本（v6.1.0，最后更新 2026-07）有两处需要注意**，装之前请知悉：
+MIT。见 [LICENSE](./LICENSE)。基线引擎的版权声明保留在 `skills/mathmodel-skill/LICENSE`。
 
-1. **AI 使用披露不符合 2026 新规。** 《全国大学生数学建模竞赛人工智能工具使用规定（2026 年试行）》自 2026-09-01 起施行，要求在**参考文献之前**放唯一一条 AI 工具使用声明，措辞二者择一、按原文固定。v6.1.0 把声明放在参考文献之后，未使用声明漏了「在竞赛过程中」，且使用 AI 时不生成正文声明（只生成支撑材料里的详情 PDF）。**提交前务必对照当年官方文件自行核对。**
+## 致谢
 
-2. **`competitions/cumcm/empirical.json` 的来源标注存疑。** 其分位数据的样本题号覆盖 A–F，而国赛本科组只设 A/B/C、专科组只设 D/E，不设 F 题。这批数据很可能来自其他赛事，不宜当作国赛基准使用。
-
-这两点属于上游项目，不在本仓库范围内。任何情况下，**当年官方通知都优先于任何工具的内置规则**。
-
-## 依赖与致谢
-
-核心引擎 [`mathmodel-skill`](https://github.com/handsomeZR-netizen/mathmodel-skill) 由 [@handsomeZR-netizen](https://github.com/handsomeZR-netizen) 开发并以 MIT 授权发布。本仓库只包含入口层。
-
-## 授权
-
-MIT，见 [LICENSE](./LICENSE)。
+底座引擎作者 [handsomeZR-netizen](https://github.com/handsomeZR-netizen)。本仓库是在打 2026 赛季的过程中改出来的，改动部分按 MIT 开放，欢迎提问题。

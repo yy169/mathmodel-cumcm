@@ -1,0 +1,375 @@
+{
+  "_schema_version": "1.0",
+  "_doc": "26math 10-stage execution contract. decision_log records why; this manifest records what must run, what proves completion, and what changes invalidate downstream work.",
+  "decision_log_schema": "3.2",
+  "stage_order": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  "artifact_contracts": {
+    "decision_log": "state/decision_log.json",
+    "checkpoint_dir": "state/checkpoints",
+    "rerun_plan": "state/rerun_plan.json",
+    "code_manifest": "results/code_manifest.json",
+    "code_appendix": "paper_workspace/code_appendix.md",
+    "figure_provenance": "results/figure_provenance.json",
+    "final_pdf_candidates": [
+      "paper/main.pdf",
+      "output/final_paper.pdf",
+      "submission/*paper*.pdf"
+    ]
+  },
+  "stages": {
+    "0": {
+      "name": "kickoff",
+      "protocol": "references/stage_00_kickoff.md",
+      "depends_on": [],
+      "checks": [
+        {
+          "kind": "state_equals",
+          "path": "stages.0.checklist_completed",
+          "value": true,
+          "message": "启动清单尚未完成"
+        },
+        {
+          "kind": "state_nonempty",
+          "path": "competition",
+          "message": "竞赛类型尚未记录"
+        }
+      ]
+    },
+    "1": {
+      "name": "problem_selection",
+      "protocol": "references/stage_01_problem_selection.md",
+      "depends_on": [0],
+      "checks": [
+        {
+          "kind": "state_nonempty",
+          "path": "stages.1.selected",
+          "message": "尚未选定题目"
+        },
+        {
+          "kind": "state_nonempty",
+          "path": "task_type",
+          "message": "task_type 尚未写入"
+        }
+      ]
+    },
+    "2": {
+      "name": "analysis",
+      "protocol": "references/stage_02_analysis.md",
+      "depends_on": [1],
+      "checks": [
+        {
+          "kind": "state_nonempty",
+          "path": "stages.2.decomposition",
+          "message": "子问题分解为空"
+        },
+        {
+          "kind": "state_nonempty",
+          "path": "stages.2.data_schema",
+          "message": "数据 schema 尚未完成"
+        },
+        {
+          "kind": "state_not_equals",
+          "path": "stages.2.literature_bootstrap.status",
+          "value": "block",
+          "message": "文献检索门禁为 block"
+        },
+        {
+          "kind": "state_not_equals",
+          "path": "stages.2.literature_quality_gate.status",
+          "value": "block",
+          "message": "文献质量门禁为 block"
+        }
+      ]
+    },
+    "3": {
+      "name": "model_selection",
+      "protocol": "references/stage_03_model_selection.md",
+      "depends_on": [2],
+      "checks": [
+        {
+          "kind": "state_nonempty",
+          "path": "stages.3.candidate_models",
+          "message": "候选模型为空"
+        },
+        {
+          "kind": "state_equals",
+          "path": "stages.3.human_model_checkpoint.status",
+          "value": "approved",
+          "message": "主模型路线尚未获得用户批准"
+        },
+        {
+          "kind": "state_nonempty",
+          "path": "stages.3.selected_per_subproblem",
+          "message": "最终模型尚未锁定"
+        }
+      ]
+    },
+    "4": {
+      "name": "foundation",
+      "protocol": "references/stage_04_foundation.md",
+      "depends_on": [3],
+      "checks": [
+        {
+          "kind": "state_nonempty",
+          "path": "stages.4.assumptions",
+          "message": "模型假设为空"
+        },
+        {
+          "kind": "state_nonempty",
+          "path": "stages.4.symbols",
+          "message": "符号表为空"
+        }
+      ]
+    },
+    "5": {
+      "name": "subproblem_loop",
+      "protocol": "references/stage_05_subproblem_loop.md",
+      "depends_on": [4],
+      "checks": [
+        {
+          "kind": "state_nonempty",
+          "path": "stages.5.qi_status",
+          "message": "子问题状态为空"
+        },
+        {
+          "kind": "state_map_excludes",
+          "path": "stages.5.qi_status",
+          "values": ["block", "refine"],
+          "message": "仍有子问题处于 block/refine"
+        },
+        {
+          "kind": "artifact_exists",
+          "paths": ["results/code_manifest.json"],
+          "message": "尚未生成代码清单"
+        }
+      ]
+    },
+    "6": {
+      "name": "robustness",
+      "protocol": "references/stage_06_robustness.md",
+      "depends_on": [5],
+      "checks": [
+        {
+          "kind": "state_nonempty",
+          "path": "stages.6.stability_verdict",
+          "message": "稳健性结论为空"
+        },
+        {
+          "kind": "state_not_equals",
+          "path": "stages.6.stability_verdict",
+          "value": "block",
+          "message": "稳健性门禁为 block"
+        }
+      ]
+    },
+    "7": {
+      "name": "evaluation",
+      "protocol": "references/stage_07_evaluation.md",
+      "depends_on": [6],
+      "checks": [
+        {
+          "kind": "state_nonempty",
+          "path": "stages.7.limitations",
+          "message": "模型局限尚未记录"
+        },
+        {
+          "kind": "state_nonempty",
+          "path": "stages.7.strengths",
+          "message": "模型优点尚未记录"
+        }
+      ]
+    },
+    "8": {
+      "name": "writing",
+      "protocol": "references/stage_08_writing.md",
+      "depends_on": [7],
+      "checks": [
+        {
+          "kind": "state_equals",
+          "path": "stages.8.compliance.rules_rechecked",
+          "value": true,
+          "message": "写作阶段尚未复核规则"
+        },
+        {
+          "kind": "artifact_any",
+          "paths": [
+            "paper/main.tex",
+            "paper.tex",
+            "paper_workspace/*.md"
+          ],
+          "message": "未发现论文源文件"
+        },
+        {
+          "kind": "artifact_exists",
+          "paths": ["paper_workspace/code_appendix.md"],
+          "message": "尚未生成自动代码附录"
+        },
+        {
+          "kind": "artifact_exists",
+          "paths": ["reports/manuscript_evidence_matrix.csv"],
+          "message": "正文六层证据矩阵"
+        },
+        {
+          "kind": "artifact_exists",
+          "paths": ["reports/figure_audit.csv"],
+          "message": "图表审计表"
+        }
+      ]
+    },
+    "9": {
+      "name": "review",
+      "protocol": "references/stage_09_review.md",
+      "depends_on": [8],
+      "checks": [
+        {
+          "kind": "artifact_json_equals",
+          "file": "reports/readiness/readiness.json",
+          "path": "readiness.submission_ready",
+          "value": true,
+          "message": "派生式 submission_ready 门禁"
+        },
+        {
+          "kind": "state_equals",
+          "path": "stages.9.compliance_checks.rules_verified",
+          "value": true,
+          "message": "官方规则尚未最终复核"
+        },
+        {
+          "kind": "artifact_any",
+          "paths": [
+            "paper/main.pdf",
+            "output/final_paper.pdf",
+            "submission/*paper*.pdf"
+          ],
+          "message": "未发现最终 PDF"
+        }
+      ]
+    }
+  },
+  "change_impact_rules": [
+    {
+      "id": "rules_or_problem",
+      "patterns": [
+        "raw/**/*.pdf",
+        "problem/**/*.pdf",
+        "competitions/**/current_rules.md",
+        "competitions/**/topic_specs.json"
+      ],
+      "stages": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "actions": [
+        "重新审计题面与官方规则",
+        "重新生成完整决策链",
+        "重跑计算、图表、论文和提交检查"
+      ]
+    },
+    {
+      "id": "data",
+      "patterns": [
+        "raw/**/*.xlsx",
+        "raw/**/*.csv",
+        "raw/**/*.json",
+        "processed_data/**",
+        "data/**"
+      ],
+      "stages": [2, 3, 4, 5, 6, 7, 8, 9],
+      "actions": [
+        "重新扫描数据 schema",
+        "重跑受影响模型、稳健性和图表",
+        "重编译并同步提交包"
+      ]
+    },
+    {
+      "id": "literature_or_parameters",
+      "patterns": [
+        "literature/**",
+        "reports/literature_*",
+        "results/parameter_provenance.csv",
+        "paper/**/*.bib",
+        "*.bib"
+      ],
+      "stages": [2, 3, 4, 7, 8, 9],
+      "actions": [
+        "复核文献—主张映射与参数来源",
+        "必要时重新触发模型路线确认",
+        "重做引用审计"
+      ]
+    },
+    {
+      "id": "model_or_solver_code",
+      "patterns": [
+        "code/**",
+        "src/**",
+        "scripts/**",
+        "models/**"
+      ],
+      "stages": [3, 4, 5, 6, 7, 8, 9],
+      "actions": [
+        "更新代码清单与代码附录",
+        "重跑模型、基线、消融和稳健性",
+        "重生成图表并核对论文数字"
+      ]
+    },
+    {
+      "id": "results",
+      "patterns": [
+        "results/**"
+      ],
+      "exclude": [
+        "results/code_manifest.json",
+        "results/figure_provenance.json"
+      ],
+      "stages": [5, 6, 7, 8, 9],
+      "actions": [
+        "复核权威结果源",
+        "重生成正式图和结果表",
+        "全文旧数字搜索"
+      ]
+    },
+    {
+      "id": "figure_sources",
+      "patterns": [
+        "figures/**",
+        "config/figure_style.json",
+        "reports/figure_*",
+        "results/figure_provenance.json"
+      ],
+      "stages": [8, 9],
+      "actions": [
+        "核对图表溯源与数值快照",
+        "重编译并逐页视觉检查"
+      ]
+    },
+    {
+      "id": "paper_text",
+      "patterns": [
+        "paper/**/*.tex",
+        "paper_workspace/**",
+        "paper.tex"
+      ],
+      "exclude": [
+        "paper_workspace/code_appendix.md"
+      ],
+      "stages": [8, 9],
+      "actions": [
+        "执行术语、引用和数字一致性检查",
+        "重新编译",
+        "渲染受影响页面"
+      ]
+    },
+    {
+      "id": "compliance_or_submission",
+      "patterns": [
+        "AI工具使用详情.*",
+        "support_materials/**",
+        "submission/**",
+        "state/decision_log.json",
+        "reports/*preflight*"
+      ],
+      "stages": [9],
+      "actions": [
+        "同步 AI 披露、状态、报告、MANIFEST 和提交包",
+        "重新核验文件大小、匿名和最终哈希"
+      ]
+    }
+  ]
+}

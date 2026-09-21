@@ -1,1 +1,10 @@
-﻿* text=auto eol=lf
+* text=auto
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.cls text eol=lf
+*.tex text eol=lf
+*.sty text eol=lf

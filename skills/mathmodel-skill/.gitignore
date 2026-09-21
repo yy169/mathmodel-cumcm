@@ -1,9 +1,7 @@
-# 运行时产物（用户跑比赛时生成，不发版）
+# 用户运行时产物
 state/decision_log.json
 state/scores.json
 state/iteration_counts.json
-skills/*/state/*.json
-!skills/*/state/.gitkeep
 results/
 figures/
 paper_workspace/
@@ -21,13 +19,11 @@ __pycache__/
 .venv/
 venv/
 
-# 他人论文原文一律不发
+# 蒸馏后 PDF 已删, 防误提交大文件
 references/papers/*.pdf
-*.pdf
 
 # OS / 编辑器
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
-*.bak

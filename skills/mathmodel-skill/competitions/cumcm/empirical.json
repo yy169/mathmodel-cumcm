@@ -1,0 +1,26 @@
+{
+  "_doc": "CUMCM empirical placeholder. 先前版本（observational_v1, 2026-05-05 烘焙）的 59 份样本来源标注有误，已整体撤回，不再提供分位数。重建进展见 empirical_notes.md。",
+  "_seed_version": "0.3",
+  "competition": "cumcm",
+  "source": {
+    "papers_total": 0,
+    "papers_extracted": 0,
+    "year_range": null,
+    "baked_at": null,
+    "baker": null,
+    "status": "retracted_pending_rebake"
+  },
+  "dims": {},
+  "quality_signals": {},
+  "_retraction": {
+    "retracted_version": "observational_v1",
+    "retracted_baked_at": "2026-05-05",
+    "reason": "来源清单中占多数的 58 份样本取自一个标注为国赛的公开目录，但其题号覆盖 A-F。国赛本科组只设 A/B/C、专科组只设 D/E，不设 F 题，该批样本实为其他赛事论文。由此得出的分位数不能代表国赛。",
+    "affected": [
+      "dims 全部分位数",
+      "quality_signals 全部比例",
+      "by_topic A-F 全部条目"
+    ]
+  },
+  "_usage": "Do not create page, word, figure, formula, reference, subproblem, or award thresholds without a provenance-reviewed corpus and extraction QA. 分位数缺失时 score_artifact.inject_evidence 会如实返回数据缺失，不要用占位数字替代。"
+}

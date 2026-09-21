@@ -204,7 +204,8 @@ def detect_run_commands(root: Path, entries: list[dict[str, Any]]) -> list[str]:
         elif language == "Julia":
             command = f"julia {path}"
         elif language == "PowerShell":
-            command = f".\\{path.replace('/', '\\')}"
+            ps_path = path.replace("/", "\\")
+            command = f".\\{ps_path}"
         elif language == "Shell":
             command = f"bash {path}"
         if command and command not in commands:
